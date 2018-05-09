@@ -1,4 +1,4 @@
-package com.example.android.beatswipe.Model;
+package com.example.android.beatswipe;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
@@ -10,15 +10,16 @@ import java.util.List;
 public class BeatViewModel extends AndroidViewModel {
 
     private BeatRepository mRepository;
+
     private LiveData<List<Beat>> mAllBeats;
 
-    public BeatViewModel(@NonNull Application application) {
+    public BeatViewModel(Application application) {
         super(application);
         mRepository = new BeatRepository(application);
         mAllBeats = mRepository.getAllBeats();
     }
 
-    LiveData<List<Beat>> getAllBeats() {
-        return mAllBeats;
-    }
+    LiveData<List<Beat>> getAllBeats() { return mAllBeats; }
+
+    public void insert(Beat beat) { mRepository.insert(beat); }
 }

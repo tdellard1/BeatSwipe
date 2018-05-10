@@ -15,6 +15,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -26,10 +29,16 @@ public class MainActivity extends AppCompatActivity {
     private MediaPlayer mediaPlayer;
     private String Url;
 
+    FirebaseDatabase database;
+    DatabaseReference databaseRef;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        database = FirebaseDatabase.getInstance();
+        databaseRef = database.getReference().child("beats");
 
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -45,8 +54,6 @@ public class MainActivity extends AppCompatActivity {
                 for (Beat beat : beats) {
                     if (beats != null) {
                         Url = beats.get(0).getBeatUrl();
-                        //int length = beats.size();
-                        //Toast.makeText(MainActivity.this, Integer.toString(length), Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(MainActivity.this, "Null", Toast.LENGTH_SHORT).show();
                     }

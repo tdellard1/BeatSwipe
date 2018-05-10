@@ -7,7 +7,13 @@ import android.support.annotation.NonNull;
 
 @Entity(tableName = "beat_table")
 public class Beat {
-    @PrimaryKey
+
+    @PrimaryKey(autoGenerate = true)
+    @NonNull
+    @ColumnInfo
+    private int id;
+
+
     @NonNull
     @ColumnInfo(name = "beat")
     private String mBeatUrl;
@@ -15,4 +21,12 @@ public class Beat {
     public Beat(@NonNull String beatUrl) { this.mBeatUrl = beatUrl;}
 
     public String getBeatUrl(){return this.mBeatUrl;}
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(@NonNull int id) {
+        this.id = id;
+    }
 }

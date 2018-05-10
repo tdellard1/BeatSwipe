@@ -22,4 +22,8 @@ public class BeatViewModel extends AndroidViewModel {
     LiveData<List<Beat>> getAllBeats() { return mAllBeats; }
 
     public void insert(Beat beat) { mRepository.insert(beat); }
+
+    public void loadBeat() {
+        mRepository.beatUrlFromDatabaseToRoom();
+    }
 }

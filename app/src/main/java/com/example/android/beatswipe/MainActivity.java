@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
 
     private BeatViewModel beatViewModel;
     private TextView urlTextView;
-    private Button playButton;
+    private Button playButton, loadButton;
     private MediaPlayer mediaPlayer;
     private String Url;
 
@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
         playButton = findViewById(R.id.play_button);
+        loadButton = findViewById(R.id.load_beat);
 
         beatViewModel = ViewModelProviders.of(this).get(BeatViewModel.class);
 
@@ -53,6 +54,13 @@ public class MainActivity extends AppCompatActivity {
 
 
                 }
+            }
+        });
+
+        loadButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                beatViewModel.loadBeat();
             }
         });
 

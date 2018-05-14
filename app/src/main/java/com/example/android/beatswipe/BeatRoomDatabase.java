@@ -8,10 +8,16 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
-@Database(entities = {Beat.class}, version = 4)
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+
+@Database(entities = {Beat.class, User.class}, version = 5)
 public abstract class BeatRoomDatabase extends RoomDatabase {
 
     public abstract BeatDao beatDao();
+    public abstract UserDao userDao();
 
     private static BeatRoomDatabase INSTANCE;
 
@@ -20,7 +26,7 @@ public abstract class BeatRoomDatabase extends RoomDatabase {
             synchronized (BeatRoomDatabase.class) {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                           BeatRoomDatabase.class, "word_database").fallbackToDestructiveMigration().addCallback(mRoomDatabaseCallback)
+                           BeatRoomDatabase.class, "beat_database").fallbackToDestructiveMigration().addCallback(mRoomDatabaseCallback)
                             .build();
                 }
             }
@@ -39,10 +45,12 @@ public abstract class BeatRoomDatabase extends RoomDatabase {
 
     private static class PopulateDbAsync extends AsyncTask<Void, Void, Void> {
 
-        private final BeatDao mDao;
+        private final BeatDao bDao;
+        private final UserDao uDao;
 
         PopulateDbAsync(BeatRoomDatabase db) {
-            mDao = db.beatDao();
+            bDao = db.beatDao();
+            uDao = db.userDao();
         }
 
         @Override

@@ -6,6 +6,7 @@ import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 
 import java.util.List;
 
@@ -17,20 +18,20 @@ public class BeatViewModel extends AndroidViewModel {
     private BeatRepository mRepository;
 
     private LiveData<List<Beat>> mAllBeats;
+    private LiveData<User> currentUser;
 
-    public BeatViewModel(Application application) {
+    public BeatViewModel(@NonNull Application application) {
         super(application);
         mRepository = new BeatRepository(application);
         mAllBeats = mRepository.getAllBeats();
+        currentUser = mRepository.getCurrentUser();
     }
 
     LiveData<List<Beat>> getAllBeats() { return mAllBeats; }
 
-    public void insert(Beat beat) { mRepository.insert(beat); }
+    LiveData<User> getCurrentUser() { return currentUser; }
 
-    public void loadBeat() {
-        //mRepository.beatUrlFromDatabaseToRoom();
-    }
+    public void insert(Beat beat) { mRepository.insert(beat); }
 
     public void selectBeat(Activity activity) {
         Intent intent = new Intent();
@@ -42,6 +43,15 @@ public class BeatViewModel extends AndroidViewModel {
     public void uploadFile(Activity activity, Uri audioUri) {
         String displayName = Utils.getDisplayName(activity, audioUri);
         mRepository.uploadFile(displayName, audioUri);
+    }
 
+    public void signOutUser() {
+        mRepository.signOutUser();
+    }
+
+    public void SignInPage(Activity activity) {
+        Intent intent = new Intent(activity, LogInActivity.class);
+        activity.startActivity(intent);
+        activity.finish();
     }
 }

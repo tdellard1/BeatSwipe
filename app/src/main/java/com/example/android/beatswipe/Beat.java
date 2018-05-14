@@ -2,17 +2,24 @@ package com.example.android.beatswipe;
 
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
-@Entity(tableName = "beat_table")
+import static android.arch.persistence.room.ForeignKey.CASCADE;
+
+@Entity(tableName = "beat_table",foreignKeys = @ForeignKey(entity = User.class,
+        parentColumns = "userId",
+        childColumns = "user",
+        onDelete = CASCADE))
 public class Beat {
 
     @PrimaryKey(autoGenerate = true)
     @NonNull
     @ColumnInfo
     private int id;
+    private String user;
 
 
     @NonNull
@@ -35,4 +42,8 @@ public class Beat {
     public void setId(@NonNull int id) {
         this.id = id;
     }
+
+    public String getUser() { return user; }
+
+    public void setUser(String user) { this.user = user; }
 }

@@ -17,6 +17,12 @@ public interface BeatDao {
     @Query("DELETE FROM beat_table")
     void deleteAll();
 
-    @Query("SELECT * from beat_table")
+    @Delete
+    void delete(Beat beat);
+
+    @Query("SELECT * FROM beat_table")
     LiveData<List<Beat>> getAllBeats();
+
+    //@Query("SELECT * FROM beat_table WHERE user=:user")
+    //List<Beat> getBeatsFromUser(User user);
 }

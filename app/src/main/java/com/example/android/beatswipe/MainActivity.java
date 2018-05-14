@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -24,8 +25,8 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private BeatViewModel beatViewModel;
-    //private TextView urlTextView;
-    private Button playButton, selectFileButton, uploadButton;
+    private TextView loggedInTextView;
+    private Button playButton, selectFileButton, uploadButton, signOutButton, nextButton;
     private MediaPlayer mediaPlayer;
     private String Url;
     Uri audioUri;
@@ -44,11 +45,26 @@ public class MainActivity extends AppCompatActivity {
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
+        nextButton = findViewById(R.id.play_next);
+        signOutButton = findViewById(R.id.btn_sign_out);
         playButton = findViewById(R.id.play_button);
         selectFileButton = findViewById(R.id.btn_select_file);
         uploadButton = findViewById(R.id.btn_upload_beat);
+        loggedInTextView = findViewById(R.id.tv_logged_in);
 
         beatViewModel = ViewModelProviders.of(this).get(BeatViewModel.class);
+
+        beatViewModel.getCurrentUser().observe(this, new Observer<User>() {
+            @Override
+            public void onChanged(@Nullable User user) {
+                if (user != null)
+                {
+                    loggedInTextView.setText(user.getName() + " is logged in.");
+                } else {
+                    beatViewModel.SignInPage(MainActivity.this);
+                }
+            }
+        });
 
         beatViewModel.getAllBeats().observe(this, new Observer<List<Beat>>() {
             @Override
@@ -66,6 +82,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        signOutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                beatViewModel.signOutUser();
+            }
+        });
+
         selectFileButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -79,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    mediaPlayer.setDataSource(Url);
+                    mediaPlayer.setDataSource("https://firebasestorage.googleapis.com/v0/b/beatswipe-10a20.appspot.com/o/beats%2FDrama?alt=media&token=433f7930-52e1-4067-8c86-6e25fd03063c");
                     mediaPlayer.prepare();
                     mediaPlayer.start();
                 } catch (IOException e) {
@@ -87,6 +110,22 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        nextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mediaPlayer.stop();
+                mediaPlayer.reset();
+                try {
+                    mediaPlayer.setDataSource("https://firebasestorage.googleapis.com/v0/b/beatswipe-10a20.appspot.com/o/beats%2FHonest?alt=media&token=f5726548-b667-4997-ab80-94738d2dc5a2");
+                    mediaPlayer.prepare();
+                    mediaPlayer.start();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
 
         uploadButton.setOnClickListener(new View.OnClickListener() {
             @Override

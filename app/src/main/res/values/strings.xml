@@ -1,3 +1,26 @@
 <resources>
     <string name="app_name">BeatSwipe</string>
+    <string name="CreateAccount">Create Account</string>
+    <string name="SignUp">Sign Up</string>
+    <string name="Login">Log In</string>
+    <string name="Name">Name</string>
+    <string name="Email">Email</string>
+    <string name="EmailAddress">Email Address</string>
+    <string name="Password">Password</string>
+    <string name="LogOut">Log Out</string>
+    <string name="UploadFile">Upload File</string>
+    <string name="Profile">Profile</string>
+    <string name="SelectFile">Select File</string>
+    <string name="Next">Next</string>
+    <string name="Play">Play</string>
+    <string name="Genre">Genre</string>
+    <string name="Trap">Trap</string>
+    <string name="HipHop">Hip Hop</string>
+    <string name="RB">RB</string>
+    <string name="BeatName">Name Of Beat</string>
+    <string-array name="genre">
+        <item>@string/Trap</item>
+        <item>@string/HipHop</item>
+        <item>@string/RB</item>
+    </string-array>
 </resources>

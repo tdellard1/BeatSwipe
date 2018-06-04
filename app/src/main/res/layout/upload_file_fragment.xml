@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.android.beatswipe.ui.upload.UploadFileFragment">
+    <data>
+        <variable
+            name="viewModel"
+            type="com.example.android.beatswipe.ui.upload.UploadViewModel"/>
+    </data>
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/darker_gray"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <Button
+            android:id="@+id/upload_fragment_play_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/Play"
+            android:onClick="@{() -> viewModel.playAudio()}"
+            android:drawableLeft="@android:drawable/ic_media_play" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/upload_fragment_nameFromUri"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="@={viewModel.uriName}"
+                android:textSize="20sp"/>
+            <TextView
+                android:id="@+id/upload_fragment_Uri"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/upload_fragment_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@={viewModel.name}"
+        android:hint="@string/BeatName"/>
+    <TextView
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/holo_red_dark"
+            android:text="@{viewModel.required}"
+            android:textSize="12sp"
+            android:gravity="right"/>
+    <EditText
+        android:id="@+id/upload_fragment_genre"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@={viewModel.genre}"
+        android:hint="@string/Genre"/>
+    <Button
+        android:id="@+id/upload_fragment_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/UploadFile"
+        android:onClick="@{() -> viewModel.uploadFile()}"
+        />
+    <ProgressBar
+        android:id="@+id/progressbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="false"
+        style="?android:attr/progressBarStyleHorizontal"/>
+
+
+</LinearLayout>
+
+</layout>

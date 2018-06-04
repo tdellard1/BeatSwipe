@@ -1,54 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<layout>
+    <data>
+        <variable name="loginViewModel"
+            type="com.example.android.beatswipe.ui.login.LogInViewModel" />
+        <import type="android.view.View"/>
+    </data>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.example.android.beatswipe.LogInActivity">
+    tools:context="com.example.android.beatswipe.ui.ui.login.LogInActivity"
+    android:background="@drawable/login_background"
+    android:padding="16dp">
 
-    <EditText
-        android:id="@+id/et_email_login"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="email"
-        android:inputType="textPersonName" />
-
-    <EditText
-        android:id="@+id/et_password_login"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="password"
-        android:inputType="textPersonName" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/btn_login"
+        <EditText
+            android:id="@+id/et_email_login"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Log In"
-            android:layout_weight="1"
-            />
+            android:layout_margin="4dp"
+            android:gravity="center"
+            android:hint="@string/EmailAddress"
+            android:inputType="textEmailAddress"
+            android:text="@={loginViewModel.email}"
+            android:textColor="@android:color/white"
+            android:textColorHint="#999"
+            android:background="@drawable/custom_login_edit_text"
+            android:layout_weight="0"
+            android:afterTextChanged="@{loginViewModel::afterTextChanged}"/>
 
-        <Button
-            android:id="@+id/btn_create_account_from_login"
+        <EditText
+            android:id="@+id/et_password_login"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Create Account"
-            android:layout_weight="1"
+            android:layout_margin="4dp"
+            android:ems="10"
+            android:gravity="center"
+            android:hint="@string/Password"
+            android:inputType="textPassword"
+            android:text="@={loginViewModel.password}"
+            android:textColor="@android:color/white"
+            android:textColorHint="#999"
+            android:background="@drawable/custom_login_edit_text"
+            android:layout_weight="0"
+            android:afterTextChanged="@{loginViewModel.afterTextChanged}"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:textColor="#F00"
+            android:textSize="12sp"
+            android:text="@{loginViewModel.loginError}"
+            android:layout_marginRight="20dp"
+            android:layout_marginLeft="20dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            style="?android:attr/buttonBarStyle">
+
+            <Button
+                android:id="@+id/btn_login"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/Login"
+                android:textColor="#999"
+                android:layout_weight="1"
+                android:onClick="@{() -> loginViewModel.LogInUser()}"
+                style="?android:attr/buttonBarButtonStyle" />
+
+            <Button
+                android:id="@+id/btn_create_account_from_login"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/SignUp"
+                android:textColor="#999"
+                android:layout_weight="1"
+                android:onClick="@{() -> loginViewModel.SignUp()}"
+                style="?android:attr/buttonBarButtonStyle"/>
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/indeterminateBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:visibility="@{loginViewModel.taskOnGoing ? View.VISIBLE : View.GONE}"
             />
-
-
     </LinearLayout>
-
-
-
-
-
-</LinearLayout>
+</layout>

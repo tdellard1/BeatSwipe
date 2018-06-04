@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data class="BeatBinding">
+        <variable name="Beat"
+            type="com.example.android.beatswipe.data.local.Beat" />
+        <import type="android.view.View"/>
+        <variable name="viewModel"
+            type="com.example.android.beatswipe.ui.profile.ProfileViewModel"/>
+    </data>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/parent_layout"
+        android:background="#191919"
+        android:layout_margin="4dp">
+
+        <ImageButton
+            android:id="@+id/play_button"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:background="@drawable/play_button"
+            android:layout_centerVertical="true"
+            android:layout_margin="8dp"
+            android:onClick="@{() -> viewModel.play(Beat)}"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_toEndOf="@id/play_button">
+
+            <TextView
+                android:id="@+id/beat_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@{Beat.name}"
+                android:textSize="26sp"
+                android:textColor="#999"/>
+
+            <TextView
+                android:id="@+id/beat_genre"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@{Beat.genre}"
+                android:textColor="#999" />
+        </LinearLayout>
+
+
+        <ImageButton
+            android:id="@+id/Edit_Beat_Button"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentRight="true"
+            android:onClick="@{() -> viewModel.editBeat(Beat)}"
+            android:background="@drawable/horizontal_ellipsis"
+            android:layout_centerVertical="true"
+            android:layout_margin="5dp"
+            android:visibility="invisible"
+            />
+    </RelativeLayout>
+</layout>

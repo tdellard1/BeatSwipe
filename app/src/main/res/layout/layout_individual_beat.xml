@@ -19,7 +19,7 @@
             android:id="@+id/play_button"
             android:layout_width="42dp"
             android:layout_height="42dp"
-            android:background="@drawable/play_button"
+            android:background="@drawable/play_button_state"
             android:layout_centerVertical="true"
             android:layout_margin="8dp"
             android:onClick="@{() -> viewModel.play(Beat)}"/>
@@ -49,14 +49,14 @@
 
         <ImageButton
             android:id="@+id/Edit_Beat_Button"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
             android:layout_alignParentRight="true"
             android:onClick="@{() -> viewModel.editBeat(Beat)}"
-            android:background="@drawable/horizontal_ellipsis"
+            android:layout_margin="8dp"
+            android:background="@drawable/edit_button_state"
             android:layout_centerVertical="true"
-            android:layout_margin="5dp"
-            android:visibility="invisible"
+            android:visibility="@{viewModel.isCurrentUser ? View.VISIBLE : View.INVISIBLE}"
             />
     </RelativeLayout>
 </layout>

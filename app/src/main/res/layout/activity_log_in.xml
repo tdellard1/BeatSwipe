@@ -19,12 +19,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
-            android:gravity="center"
             android:hint="@string/EmailAddress"
             android:inputType="textEmailAddress"
             android:text="@={loginViewModel.email}"
+            android:enabled="@{loginViewModel.taskOnGoing ? false : true}"
             android:textColor="@android:color/white"
             android:textColorHint="#999"
+            android:gravity="center"
             android:background="@drawable/custom_login_edit_text"
             android:layout_weight="0"
             android:afterTextChanged="@{loginViewModel::afterTextChanged}"/>
@@ -39,11 +40,12 @@
             android:hint="@string/Password"
             android:inputType="textPassword"
             android:text="@={loginViewModel.password}"
+            android:enabled="@{loginViewModel.taskOnGoing ? false : true}"
             android:textColor="@android:color/white"
             android:textColorHint="#999"
             android:background="@drawable/custom_login_edit_text"
             android:layout_weight="0"
-            android:afterTextChanged="@{loginViewModel.afterTextChanged}"/>
+            android:afterTextChanged="@{loginViewModel::afterTextChanged}"/>
 
         <TextView
             android:layout_width="match_parent"
@@ -68,6 +70,7 @@
                 android:textColor="#999"
                 android:layout_weight="1"
                 android:onClick="@{() -> loginViewModel.LogInUser()}"
+                android:clickable="@{loginViewModel.taskOnGoing ? false : true}"
                 style="?android:attr/buttonBarButtonStyle" />
 
             <Button
@@ -78,6 +81,7 @@
                 android:textColor="#999"
                 android:layout_weight="1"
                 android:onClick="@{() -> loginViewModel.SignUp()}"
+                android:clickable="@{loginViewModel.taskOnGoing ? false : true}"
                 style="?android:attr/buttonBarButtonStyle"/>
         </LinearLayout>
 

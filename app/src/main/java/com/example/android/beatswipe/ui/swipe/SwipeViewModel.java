@@ -3,16 +3,30 @@ package com.example.android.beatswipe.ui.swipe;
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.ViewModelProviders;
+import android.content.Intent;
+import android.databinding.Observable;
 import android.databinding.ObservableBoolean;
 import android.databinding.ObservableField;
+import android.databinding.PropertyChangeRegistry;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
+import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentActivity;
+import android.support.v7.widget.CardView;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.ImageView;
 
+import com.example.android.beatswipe.BR;
+import com.example.android.beatswipe.R;
 import com.example.android.beatswipe.data.local.Beat;
 import com.example.android.beatswipe.data.local.User;
 import com.example.android.beatswipe.utils.BeatRepository;
-import com.example.android.beatswipe.utils.MediaPlayerHolder;
-import com.example.android.beatswipe.utils.MediaPlayerHolderListener;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,18 +35,38 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 
-import static com.example.android.beatswipe.utils.Utils.testRef;
+public class SwipeViewModel extends AndroidViewModel implements Observable{
 
-public class SwipeViewModel extends AndroidViewModel implements MediaPlayerHolderListener {
+    public static SwipeViewModel getInstance(FragmentActivity activity, SwipeHandler handler){
+        SwipeViewModel viewModel = ViewModelProviders.of(activity).get(SwipeViewModel.class);
+        viewModel.sHandler = handler;
+        return viewModel;
+    }
 
     private SwipeHandler sHandler;
-    public ObservableBoolean isPlaying = new ObservableBoolean(false);
-    private boolean mediaStarted = false;
+    public ObservableField<Boolean> isPlaying = new ObservableField<>(false);
     private List<User> userList;
+    public Handler mHandler;
+    private Runnable mRunnable = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                mediaPlayer.pause();
+                mediaPlayer.seekTo(0);
+                //mediaPlayer.prepare();
+                isPlaying.set(false);
+            }catch(Exception e) {
+                e.printStackTrace();
+            }
+        }
+    };
+
+
+    public ObservableField<Boolean> getIsPlaying() {
+        return isPlaying;
+    }
 
     private SwipeHandler getsHandler() { return sHandler; }
-
-    public void setsHandler(SwipeHandler sHandler) { this.sHandler = sHandler; }
 
     /**
      * Public observable fields that are used to display info from each beat.
@@ -42,21 +76,22 @@ public class SwipeViewModel extends AndroidViewModel implements MediaPlayerHolde
     public ObservableField<String> beat_owner = new ObservableField<>();
 
     /**
-     * Observable Object filled with all the beats/users that are inside Room Database.
-     * Observed from Activity class then filtered to find the correct beats/users.
-     */
-    private LiveData<List<Beat>> mAllBeats;
-    private LiveData<List<User>> mAllUsers;
-    /**
+     * Observable Object filled with all the beat */
+     private LiveData<List<Beat>> mAllBeats;
+     private LiveData<List<User>> mAllUsers;
+     /**
      * Queue List of Beats and MediaPlayer Objects.
-     * Queue was used to completely remove items instead of indexing through them for convenience.
+     * Queue was used to cos/users that are inside Room Database.
+     * Observed from Activity class then filtered to find the correct beats/users.
+     * Completely remove items instead of indexing through them for convenience.
      *
      * @params beatQueue: List of beats.
      * @params mediaQueue: Pre-loaded <MediaPlayer> objects.
      */
-    private ArrayList<Beat> reverseBeats = new ArrayList<>();
+     private ArrayList<Beat> reverseBeats = new ArrayList<>();
     private Queue<Beat>beatQueue = new LinkedList<>();
-    private Queue<MediaPlayerHolder> mediaQueue = new LinkedList<>();
+    private ArrayList<MediaPlayer> reverseMedia = new ArrayList<>();
+    private Queue<MediaPlayer> mediaQueue = new LinkedList<>();
     /**
      * Single objects of the current beat and current media player exposed tot the user
      *
@@ -64,9 +99,9 @@ public class SwipeViewModel extends AndroidViewModel implements MediaPlayerHolde
      * @params mediaPLayerHolder: Holds the currently displayed MediaPlayer playing the current beat.
      */
     private Beat currentBeat;
-    private MediaPlayerHolder mediaPlayerHolder;
+    private MediaPlayer mediaPlayer;
 
-    public MediaPlayerHolder getMediaPlayerHolder() { return mediaPlayerHolder; }
+    public MediaPlayer getMediaPlayer() { return mediaPlayer; }
 
     BeatRepository mRepository;
 
@@ -75,8 +110,8 @@ public class SwipeViewModel extends AndroidViewModel implements MediaPlayerHolde
      * @param beat
      * @param media
      */
-    public void addBeatAndMedia(Beat beat, MediaPlayerHolder media) {
-        this.mediaQueue.offer(media);
+    public void addBeatAndMedia(Beat beat, MediaPlayer media) {
+        reverseMedia.add(media);
         reverseBeats.add(beat);
     }
 
@@ -97,18 +132,20 @@ public class SwipeViewModel extends AndroidViewModel implements MediaPlayerHolde
     public void Profile() {
         for (User user : userList) {
             if (user.getName().equals(beat_owner.get())) {
-                mediaPlayerHolder.stop();
+                mediaPlayer.stop();
                 getsHandler().StartProfileFragment(user.getUserId());
             }
         }
     }
 
     public void reorderBeats() {
-        Collections.reverse(reverseBeats);
-        for (Beat beat : reverseBeats) {
-            beatQueue.offer(beat);
+        for (int i = reverseBeats.size() - 1; i >= 0; i--) {
+            beatQueue.offer(reverseBeats.get(i));
+            mediaQueue.offer(reverseMedia.get(i));
         }
-        play();
+        /*for (Beat beat : reverseBeats) {
+            beatQueue.offer(beat);
+        }*/
     }
 
     /**
@@ -117,57 +154,75 @@ public class SwipeViewModel extends AndroidViewModel implements MediaPlayerHolde
      */
     public void play() {
         try {
-            currentBeat = beatQueue.remove();
-            mediaPlayerHolder = mediaQueue.remove();
-            //mediaPlayerHolder.setPHL(this);
-        } catch (NoSuchElementException e) {
-            e.printStackTrace();
-            sHandler.goBack();
-            return;
-        }
-        mediaPlayerHolder.start();
-        beat_name.set(currentBeat.getName());
-        beat_genre.set(currentBeat.getGenre());
-        for (User user : userList) {
-            if (user.getUserId().equals(currentBeat.getOwner())) {
-                beat_owner.set(user.getName());
+            /*mediaPlayer.setOnPreparedListener(MediaPlayer::start);
+            mediaPlayer.prepareAsync();*/
+        } catch (IllegalStateException e) {
+            Log.d("tag", "IllegalStateCalled");
+            mediaPlayer.start();
+            if (e.getLocalizedMessage() != null) {
+                Log.d("tag", e.getLocalizedMessage());
+            }
+            if (e.getMessage() != null) {
+                Log.d("tag", e.getMessage());
             }
         }
+        mediaPlayer.start();
         isPlaying.set(true);
+
+        mHandler = new Handler();
+        mHandler.postDelayed(mRunnable, 30*1000);
     }
 
+
+
     public void playNext() {
-        if (mediaPlayerHolder != null && mediaPlayerHolder.isPlaying()) {
-            mediaPlayerHolder.stop();
-            isPlaying.set(false);
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+            mediaPlayer.reset();
         }
         try {
             currentBeat = beatQueue.remove();
-            mediaPlayerHolder = mediaQueue.remove();
-            mediaPlayerHolder.setPHL(this);
+            mediaPlayer = mediaQueue.remove();
         } catch (NoSuchElementException e) {
             e.printStackTrace();
             sHandler.goBack();
             return;
         }
 
+        beat_name.set(currentBeat.getName());
+        beat_genre.set(currentBeat.getGenre());
         for (User user : userList) {
             if (user.getUserId().equals(currentBeat.getOwner())) {
                 beat_owner.set(user.getName());
             }
         }
-        beat_name.set(currentBeat.getName());
-        beat_genre.set(currentBeat.getGenre());
-        mediaPlayerHolder.start();
-        isPlaying.set(true);
+        play();
     }
 
-    public void test() {
-        mRepository.deleteBeats();
+    public void cancelPlay() {
+        Log.d("tag", "mRunnable Callback Removed");
+        mHandler.removeCallbacks(mRunnable);
+    }
+
+    public void purchaseBeat() {
+        sHandler.BrowserIntent(new Intent(Intent.ACTION_VIEW, Uri.parse(currentBeat.getLink())));
     }
 
     @Override
-    public void playbackComplete(boolean currentlyPlaying) {
-        isPlaying.set(currentlyPlaying);
+    public void addOnPropertyChangedCallback(OnPropertyChangedCallback callback) {
+        registry.add(callback);
+    }
+
+    @Override
+    public void removeOnPropertyChangedCallback(OnPropertyChangedCallback callback) {
+         registry.remove(callback);
+    }
+
+    private PropertyChangeRegistry registry = new PropertyChangeRegistry();
+
+    public interface SwipeHandler {
+        void StartProfileFragment(String uid);
+        void BrowserIntent(Intent intent);
+        void goBack();
     }
 }

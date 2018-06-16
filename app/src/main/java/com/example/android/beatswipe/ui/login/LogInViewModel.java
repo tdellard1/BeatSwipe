@@ -99,14 +99,6 @@ public class LogInViewModel extends AndroidViewModel implements Observable, Text
         getLogInNavigator().SignUpClicked();
     }
 
-    public void loadAddBeats() {
-        mRepository.loadAllBeats();
-    }
-
-    public void loadAllUsers() {
-        mRepository.loadAllUsers();
-    }
-
     @Override
     public void addOnPropertyChangedCallback(OnPropertyChangedCallback callback) {
         registry.add(callback);

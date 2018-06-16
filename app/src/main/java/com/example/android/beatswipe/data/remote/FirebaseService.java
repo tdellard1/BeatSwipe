@@ -4,13 +4,9 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
-import com.example.android.beatswipe.R;
-import com.example.android.beatswipe.utils.FirebaseListener;
 import com.example.android.beatswipe.data.local.Beat;
 import com.example.android.beatswipe.data.local.User;
-import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -25,124 +21,117 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
-import java.util.HashMap;
+
 import java.util.Map;
 import java.util.Objects;
 
-import static android.content.ContentValues.TAG;
 import static com.example.android.beatswipe.ui.signup.SignUpViewModel.USERNAME;
 import static com.example.android.beatswipe.ui.signup.SignUpViewModel.USERPASSWORD;
-import static com.example.android.beatswipe.ui.upload.UploadFileFragment.GENRE;
-import static com.example.android.beatswipe.ui.upload.UploadFileFragment.NAME;
-import static com.example.android.beatswipe.ui.upload.UploadFileFragment.URL;
+import static com.example.android.beatswipe.ui.upload.UploadFileFragment.FIREBASE_AUDIO_URL;
 import static com.example.android.beatswipe.ui.signup.SignUpViewModel.USEREMAIL;
-import static com.example.android.beatswipe.utils.ErrorConstants.LOGIN_ERROR;
+import static com.example.android.beatswipe.ui.upload.UploadFileFragment.FIREBASE_IMAGE_URL;
+import static com.example.android.beatswipe.ui.upload.UploadViewModel.AUDIO_FILE_NAME;
+import static com.example.android.beatswipe.ui.upload.UploadViewModel.AUDIO_FILE_URL;
+import static com.example.android.beatswipe.ui.upload.UploadViewModel.FILE_URL;
+import static com.example.android.beatswipe.ui.upload.UploadViewModel.GENRE;
+import static com.example.android.beatswipe.ui.upload.UploadViewModel.IMAGE_FILE_NAME;
+import static com.example.android.beatswipe.ui.upload.UploadViewModel.IMAGE_FILE_URL;
+import static com.example.android.beatswipe.ui.upload.UploadViewModel.PURCHASE_LINK;
 import static com.example.android.beatswipe.utils.ErrorConstants.LOGIN_HANDLER;
 import static com.example.android.beatswipe.utils.ErrorConstants.SIGNUP_HANDLER;
+import static com.example.android.beatswipe.utils.ErrorConstants.UPLOAD_HANDLER;
 import static com.example.android.beatswipe.utils.Utils.testRef;
 
 public class FirebaseService {
 
     private final String LOGIN_ERROR_MESSAGE_ONE = "There is no user record corresponding to this identifier. The user may have been deleted.";
     private final String LOGIN_ERROR_MESSAGE_TWO = "The password is invalid or the user does not have a password.";
-    public static final String Error = "Error";
-    public static final String ErrorCode = "ErrorCode";
+    private MutableLiveData<Double> mProgressLoaded = new MutableLiveData<>();
+    private DatabaseReference mDatabaseRef;
+    private StorageReference mStorageRef;
+    private FirebaseListener mListener;
     private FirebaseAuth mAuth;
-    private DatabaseReference databaseRef;
-    private StorageReference storageRef;
 
-
-
-    private FirebaseListener listener;
-    private Map<String, String> error = new HashMap<>();
-    private MutableLiveData<Map<String, String>> ERROR = new MutableLiveData<>();
-    private MutableLiveData<Double> progressloaded = new MutableLiveData<>();
 
     public FirebaseService() {
-        storageRef = FirebaseStorage.getInstance().getReference();
-        databaseRef = FirebaseDatabase.getInstance().getReference();
+        mStorageRef = FirebaseStorage.getInstance().getReference();
+        mDatabaseRef = FirebaseDatabase.getInstance().getReference();
         mAuth = FirebaseAuth.getInstance();
     }
 
-    /*********************************************************************************************************************************************
-     ********************************************* M E T H O D S   R E T U R N I N G   O B J E C T S *********************************************
-     *********************************************************************************************************************************************/
+    public LiveData<Double> getProgressLoaded() { return mProgressLoaded; }
 
-    public LiveData<Double> getProgressLoaded() {
-        return progressloaded;
-    }
-
-    public FirebaseUser getCurrentUser() {
-        return mAuth.getCurrentUser();
-    }
-
-    public LiveData<Map<String, String>> getERROR() {
-        return ERROR;
-    }
+    public FirebaseUser getCurrentUser() { return mAuth.getCurrentUser(); }
 
     public void addFirebaseListener(FirebaseListener firebaseListener) {
-        this.listener = firebaseListener;
+        this.mListener = firebaseListener;
     }
 
-    /*********************************************************************************************************************************************
-     ******************************************* S T O R A G E   A N D   D A T A B A S E   M E T H O D S *****************************************
-     *********************************************************************************************************************************************/
+    public void addAudioToStorage(final Map FileMap) {
+        final StorageReference AudioUploadRef = mStorageRef.child(mAuth.getCurrentUser().getUid()).child("AUDIO")
+            .child((String) FileMap.get(AUDIO_FILE_NAME));
 
-    public void addBeatToStorageAndDatabase(final Map FileMap) {
-            final StorageReference uploadRef = storageRef.child(Objects.requireNonNull(mAuth.getCurrentUser()).getUid()).child((String) FileMap.get(NAME));
-            uploadRef.putFile(Uri.parse((String) FileMap.get(URL))).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                    progressloaded.postValue((100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount());
-                    }
-            }).continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                @Override
-                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                    if (!task.isSuccessful()) {
-                        //// Add Error Message To Relay Upwards
-                        return null;
-                    }
-                    progressloaded.postValue(100.0);
-                    return uploadRef.getDownloadUrl();
+        AudioUploadRef.putFile(Uri.parse((String) FileMap.get(AUDIO_FILE_URL))).addOnProgressListener(taskSnapshot ->
+                    mProgressLoaded.postValue((100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount())).continueWithTask(task -> {
+                if (!task.isSuccessful()) {
+                    mListener.ErrorMessage(task.getException().getMessage(), UPLOAD_HANDLER);
+                    return null;
+                } else {
+                    mProgressLoaded.postValue(99.0);
+                    return AudioUploadRef.getDownloadUrl();
                 }
-            }).addOnSuccessListener(new OnSuccessListener<Uri>() {
-                @Override
-                public void onSuccess(@NonNull Uri uri) {
-                    fromStorageToDatabase(new Beat((String) FileMap.get(NAME), uri.toString(),mAuth.getCurrentUser().getUid(),(String)  FileMap.get(GENRE)));
-                }
+            }).addOnSuccessListener(uri -> {
+                FileMap.put(FIREBASE_AUDIO_URL, uri.toString());
+                addImageToStorage(FileMap);
             });
     }
 
-    private void fromStorageToDatabase(final Beat beat) {
-        databaseRef.child("beats").child("users").child(Objects.requireNonNull(mAuth.getCurrentUser()).getUid()).child("beats").child(beat.getName()).setValue(beat);
+    public void updateBeat(final Beat oldBeat, Map<String, String> newBeat) {
+        testRef.push().setValue("FirebaseService: updateBeat initiated");
+        final StorageReference ImageUploadRef = mStorageRef.child(mAuth.getCurrentUser().getUid()).child("IMAGE")
+                .child(newBeat.get(IMAGE_FILE_NAME));
+
+        testRef.push().setValue("FirebaseService: updateBeat: Ref Made");
+
+        ImageUploadRef.putFile(Uri.parse(newBeat.get(IMAGE_FILE_URL))).addOnProgressListener(taskSnapshot ->{
+            testRef.push().setValue("FirebaseService: updateBeat:  Progress Listener");
+            mProgressLoaded.postValue((100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount());}).continueWithTask(task -> {
+            if (!task.isSuccessful()) {
+                testRef.push().setValue(task.getException().getMessage());
+                //mListener.ErrorMessage(task.getException().getMessage(), UPLOAD_HANDLER);
+                return null;
+            } else {
+                mProgressLoaded.postValue(100.0);
+                testRef.push().setValue("FirebaseService: updateBeat tasksuccessful");
+                return ImageUploadRef.getDownloadUrl();
+            }
+        }).addOnSuccessListener(uri -> {
+            testRef.push().setValue("FirebaseService: putFile called");
+            Beat beat = new Beat(
+                    newBeat.get(AUDIO_FILE_NAME),
+                    newBeat.get(AUDIO_FILE_URL),
+                    mAuth.getCurrentUser().getUid(),
+                    newBeat.get(GENRE),
+                    newBeat.get(PURCHASE_LINK),
+                    uri.toString());
+            removeAndAddBeat(oldBeat, beat);
+            //transferBeatFromStorageToDatabase(newBeat);
+        });
     }
 
     public void deleteBeat(final String beatName) {
-        databaseRef.child("test").push().setValue("deleteBeat from firebase service called");
-        StorageReference deleteRef = storageRef.child(Objects.requireNonNull(mAuth.getCurrentUser()).getUid()).child(beatName);
-        deleteRef.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    databaseRef.child("test").push().setValue("successfully deleted beat");
-                    DatabaseReference removeBeatRef = databaseRef.child("beats").child("users").child(mAuth.getCurrentUser().getUid()).child("beats").child(beatName);
-                    removeBeatRef.removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            databaseRef.child("test").push().setValue("beat removed from database");
-
-                        }
-                    });
-                }
+        StorageReference deleteRef =
+                mStorageRef.child(Objects.requireNonNull(mAuth.getCurrentUser()).getUid())
+                        .child(beatName);
+        deleteRef.delete().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DatabaseReference removeBeatRef = mDatabaseRef.child("beats").child("users")
+                        .child(mAuth.getCurrentUser().getUid()).child("beats").child(beatName);
+                removeBeatRef.removeValue();
             }
         });
     }
- /* *********************************************************************************************************************************************
-    *************************************** M E T H O D S   T A R G E T I N G   C U R R E N T   U S E R S ***************************************
-    *********************************************************************************************************************************************/
 
     /**
      * <METHOD>:createUser() - used to create an authentic and authorized user for the app.
@@ -168,11 +157,11 @@ public class FirebaseService {
                             if (mAuth.getCurrentUser().getDisplayName() == null) {
                                 user.setName((String) UserMap.get(USERNAME));
                             }
-                            databaseRef.child("users").child(user.getUserId()).setValue(user).addOnSuccessListener(new OnSuccessListener<Void>() {
+                            mDatabaseRef.child("users").child(user.getUserId()).setValue(user).addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void aVoid) {
-                                    if (listener != null) {
-                                        listener.LogIn(mAuth.getCurrentUser());
+                                    if (mListener != null) {
+                                        mListener.LogIn(mAuth.getCurrentUser());
                                     }
                                 }
                             });
@@ -180,11 +169,13 @@ public class FirebaseService {
                     }
                 });
             } else {
-                listener.ErrorMessage(task.getException().getMessage(), SIGNUP_HANDLER);
+                mListener.ErrorMessage(task.getException().getMessage(), SIGNUP_HANDLER);
             }
         }
     });
 }
+
+
     /**
      * <METHOD/>: logInUser() - used to authenticate a user and if successful logs them into the app
      * TODO: Leave Comments
@@ -194,14 +185,14 @@ public class FirebaseService {
     public void logInUser(String email, String password) {
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                listener.LogIn(mAuth.getCurrentUser());
+                mListener.LogIn(mAuth.getCurrentUser());
             } else {
                 switch (task.getException().getMessage()) {
                     case LOGIN_ERROR_MESSAGE_ONE:
-                        listener.ErrorMessage("Couldn't Find Account Matching Given Email!", LOGIN_HANDLER);
+                        mListener.ErrorMessage("Couldn't Find Account Matching Given Email!", LOGIN_HANDLER);
                         break;
                     case LOGIN_ERROR_MESSAGE_TWO:
-                        listener.ErrorMessage("Email ANd Password Combination Incorrect.", LOGIN_HANDLER);
+                        mListener.ErrorMessage("Email ANd Password Combination Incorrect.", LOGIN_HANDLER);
                         break;
                 }
             }
@@ -217,10 +208,6 @@ public class FirebaseService {
         return mAuth.getCurrentUser();
     }
 
-    /*********************************************************************************************************************************************
-     *************************************** M E T H O D S   T A R G E T I N G   R O O M   D A T A B A S E ***************************************
-     *********************************************************************************************************************************************/
-
     /**
      * syncAllBeats() is used to add all beats from Firebase Database to Room Database within the app.
      * This method should be called and active when user first signs on, plus more.
@@ -228,25 +215,25 @@ public class FirebaseService {
      * currently not sure how much a room database can hold all together
      *
      * TODO 1: test to see if I add a new beat if it will add just that one beat and not the rest.
-     * TODO 2: Figure out when to detach the listener.
+     * TODO 2: Figure out when to detach the mListener.
      */
     public void syncAllBeats() {
-        DatabaseReference uidRef = databaseRef.child("users");
+        DatabaseReference uidRef = mDatabaseRef.child("users");
         ValueEventListener userEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                    DatabaseReference currentUserRef = databaseRef.child("beats").child("users/" + postSnapshot.getKey() + "/beats");
+                    DatabaseReference currentUserRef = mDatabaseRef.child("beats").child("users/" + postSnapshot.getKey() + "/beats");
                     ChildEventListener userEventListener = new ChildEventListener() {
                         @Override
                         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                            listener.AddOneBeatToRoomDatabase(dataSnapshot.getValue(Beat.class));
+                            mListener.AddOneBeatToRoomDatabase(dataSnapshot.getValue(Beat.class));
                         }
                         @Override public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                            listener.UpdateBeat(dataSnapshot.getValue(Beat.class));
+                            mListener.UpdateBeat(dataSnapshot.getValue(Beat.class));
                         }
                         @Override public void onChildRemoved(DataSnapshot dataSnapshot) {
-                            listener.RemoveBeatFromRoomDatabase(dataSnapshot.getValue(Beat.class));
+                            mListener.RemoveBeatFromRoomDatabase(dataSnapshot.getValue(Beat.class));
                         }
                         @Override public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
                         @Override public void onCancelled(DatabaseError databaseError) {}
@@ -254,9 +241,7 @@ public class FirebaseService {
                     currentUserRef.addChildEventListener(userEventListener);
                 }
             }
-            @Override public void onCancelled(DatabaseError databaseError) {
-
-            }
+            @Override public void onCancelled(DatabaseError databaseError) {}
         };
         uidRef.addValueEventListener(userEventListener);
     }
@@ -266,12 +251,12 @@ public class FirebaseService {
      * This method should be called and active when user first signs on, plus more.
      */
     public void syncAllProducers() {
-        DatabaseReference uidRef = databaseRef.child("users");
+        DatabaseReference uidRef = mDatabaseRef.child("users");
         ValueEventListener userEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                    listener.AddUserToRoomDatabase(postSnapshot.getValue(User.class));
+                    mListener.AddUserToRoomDatabase(postSnapshot.getValue(User.class));
                 }
             }
             @Override public void onCancelled(DatabaseError databaseError) {
@@ -281,9 +266,47 @@ public class FirebaseService {
         uidRef.addValueEventListener(userEventListener);
     }
 
+    private void transferBeatFromStorageToDatabase(Map FileMap) {
+        Beat beat = new Beat(
+                (String) FileMap.get(AUDIO_FILE_NAME),
+                (String) FileMap.get(FIREBASE_AUDIO_URL),
+                mAuth.getCurrentUser().getUid(),(String)  FileMap.get(GENRE),
+                (String) FileMap.get(PURCHASE_LINK),
+                (String) FileMap.get(FIREBASE_IMAGE_URL));
+        mDatabaseRef.child("beats").child("users").child(Objects.requireNonNull(mAuth.getCurrentUser()).getUid()).child("beats").child(beat.getName()).setValue(beat);
+    }
 
-    public void updateBeat(final Beat originalBeat) {
-        DatabaseReference updateBeatRef = databaseRef.child("beats").child("users").child(mAuth.getCurrentUser().getUid()).child("beats").child(originalBeat.getName());
-        updateBeatRef.setValue(originalBeat);
+    private void addImageToStorage(final Map FileMap) {
+        final StorageReference ImageUploadRef = mStorageRef.child(mAuth.getCurrentUser().getUid()).child("IMAGE")
+                .child((String) FileMap.get(IMAGE_FILE_NAME));
+
+        ImageUploadRef.putFile(Uri.parse((String) FileMap.get(IMAGE_FILE_URL))).addOnProgressListener(taskSnapshot ->
+                mProgressLoaded.postValue((100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount())).continueWithTask(task -> {
+            if (!task.isSuccessful()) {
+                mListener.ErrorMessage(task.getException().getMessage(), UPLOAD_HANDLER);
+                return null;
+            } else {
+                mProgressLoaded.postValue(100.0);
+                return ImageUploadRef.getDownloadUrl();
+            }
+        }).addOnSuccessListener(uri -> {
+            FileMap.put(FIREBASE_IMAGE_URL, uri.toString());
+            transferBeatFromStorageToDatabase(FileMap);
+        });
+    }
+
+    private void removeAndAddBeat(Beat oldBeat, Beat newBeat) {
+        testRef.push().setValue("FirebaseService: removeAndAddBeat called");
+        mDatabaseRef.child("beats").child("users").child(mAuth.getCurrentUser().getUid()).child("beats").child(oldBeat.getName()).removeValue();
+        mDatabaseRef.child("beats").child("users").child(mAuth.getCurrentUser().getUid()).child("beats").child(newBeat.getName()).setValue(newBeat);
+    }
+
+    public interface FirebaseListener {
+        void AddUserToRoomDatabase(User user);
+        void AddOneBeatToRoomDatabase(Beat beat);
+        void LogIn(FirebaseUser firebaseUser);
+        void RemoveBeatFromRoomDatabase(Beat beat);
+        void UpdateBeat(Beat beat);
+        void ErrorMessage(String message, String handler);
     }
 }

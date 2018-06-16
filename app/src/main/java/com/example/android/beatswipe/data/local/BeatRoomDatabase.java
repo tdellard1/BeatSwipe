@@ -8,7 +8,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
-@Database(entities = {Beat.class, User.class}, version = 17)
+@Database(entities = {Beat.class, User.class}, version = 20)
 public abstract class BeatRoomDatabase extends RoomDatabase {
 
     public abstract BeatDao beatDao();

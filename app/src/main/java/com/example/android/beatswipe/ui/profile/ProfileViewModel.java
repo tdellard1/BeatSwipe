@@ -1,36 +1,36 @@
 package com.example.android.beatswipe.ui.profile;
 
 import android.app.Application;
-import android.app.FragmentManager;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.databinding.Bindable;
 import android.databinding.Observable;
+import android.databinding.ObservableBoolean;
 import android.databinding.ObservableField;
 import android.databinding.PropertyChangeRegistry;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.example.android.beatswipe.BR;
 import com.example.android.beatswipe.R;
 import com.example.android.beatswipe.data.local.Beat;
 import com.example.android.beatswipe.data.local.User;
-import com.example.android.beatswipe.ui.individualbeat.EditBeatFragment;
+import com.example.android.beatswipe.ui.edit.EditBeatFragment;
 import com.example.android.beatswipe.utils.BeatRepository;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.io.IOException;
 import java.util.List;
 
-import static com.example.android.beatswipe.utils.Utils.testRef;
-
 public class ProfileViewModel extends AndroidViewModel implements MediaPlayer.OnPreparedListener, Observable{
 
     private PropertyChangeRegistry registry = new PropertyChangeRegistry();
     private ObservableField<Integer> progress = new ObservableField<>();
     private ObservableField<Integer> max = new ObservableField<>();
+    private ObservableField<Boolean> isCurrentUser = new ObservableField<>();
 
     @Bindable
     public ObservableField<Integer> getProgress() {
@@ -40,6 +40,11 @@ public class ProfileViewModel extends AndroidViewModel implements MediaPlayer.On
     @Bindable
     public ObservableField<Integer> getMax() {
         return max;
+    }
+
+    @Bindable
+    public ObservableField<Boolean> getIsCurrentUser() {
+        return isCurrentUser;
     }
 
     private BeatRepository mRepository;
@@ -75,9 +80,15 @@ public class ProfileViewModel extends AndroidViewModel implements MediaPlayer.On
         this.progress.set(progress);
         registry.notifyChange(this, BR.progress);
     }
+
     public void setMax(int max) {
         this.max.set(max);
         registry.notifyChange(this, BR.max);
+    }
+
+    public void setIsCurrentUser(boolean isCurrentUser) {
+        this.isCurrentUser.set(isCurrentUser);
+        registry.notifyChange(this, BR.isCurrentUser);
     }
 
     public void beatsNull() {
@@ -103,9 +114,7 @@ public class ProfileViewModel extends AndroidViewModel implements MediaPlayer.On
     }
 
     public void editBeat(Beat beat) {
-        EditBeatFragment editBeatFragment = new EditBeatFragment();
-        editBeatFragment.setBeat(beat);
-        fragmentManager.beginTransaction().add(R.id.profile_frag, editBeatFragment).addToBackStack(null).commit();
+        fragmentManager.beginTransaction().add(R.id.fragment_profile_display, EditBeatFragment.newInstance(beat)).addToBackStack(null).commit();
     }
 
     @Override
@@ -117,9 +126,9 @@ public class ProfileViewModel extends AndroidViewModel implements MediaPlayer.On
             @Override
             public void run() {
                 setProgress(mPlayer.getCurrentPosition());
-                handler.postDelayed(this, 250);
+                handler.postDelayed(this, 1000);
             }
-        }, 250);
+        }, 1000);
     }
 
     private void playMedia(Beat beat) {
@@ -135,7 +144,7 @@ public class ProfileViewModel extends AndroidViewModel implements MediaPlayer.On
         }
         mPlayer.setOnPreparedListener(this);
         try {
-            mPlayer.setDataSource(beat.getUrl());
+            mPlayer.setDataSource(beat.getAudioUrl());
             mPlayer.prepareAsync();
         } catch (IOException e) {
             e.printStackTrace();

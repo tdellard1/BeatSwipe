@@ -1,31 +1,20 @@
 package com.example.android.beatswipe.ui.login;
 
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.databinding.DataBindingUtil;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.widget.EditText;
-import android.widget.Toast;
+
 import com.example.android.beatswipe.ui.main.MainActivity;
 import com.example.android.beatswipe.R;
-import com.example.android.beatswipe.data.local.User;
 import com.example.android.beatswipe.databinding.ActivityLogInBinding;
 import com.example.android.beatswipe.ui.signup.SignUpActivity;
-import com.example.android.beatswipe.utils.ErrorConstants;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-
-import java.util.Map;
 
 public class LogInActivity extends AppCompatActivity implements com.example.android.beatswipe.ui.ui.login.LogInNavigator {
 
-    public static Intent LogInIntent(Context context) {
+    public static Intent getLogInActivityIntent(Context context) {
         return new Intent(context, LogInActivity.class);
     }
 
@@ -47,8 +36,6 @@ public class LogInActivity extends AppCompatActivity implements com.example.andr
         });
         logInViewModel.getCurrentUser().observe(this, user -> {
             if (user != null) {
-                logInViewModel.loadAddBeats();
-                logInViewModel.loadAllUsers();
                 goToMainActivity();
             }
         });
@@ -64,7 +51,7 @@ public class LogInActivity extends AppCompatActivity implements com.example.andr
 
     @Override
     public void goToMainActivity() {
-        startActivity(MainActivity.MainIntent(this));
+        startActivity(MainActivity.getMainActivityIntent(this));
         finish();
     }
 

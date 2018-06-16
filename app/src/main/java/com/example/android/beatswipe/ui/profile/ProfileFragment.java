@@ -1,43 +1,50 @@
 package com.example.android.beatswipe.ui.profile;
 
-import android.arch.lifecycle.Observer;
+import android.app.Activity;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.example.android.beatswipe.R;
 import com.example.android.beatswipe.data.local.Beat;
 import com.example.android.beatswipe.data.local.User;
 import com.example.android.beatswipe.databinding.FragmentProfileBinding;
-import com.example.android.beatswipe.ui.login.LogInActivity;
-import com.google.firebase.auth.FirebaseUser;
+import com.example.android.beatswipe.ui.main.MainActivity;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class ProfileFragment extends Fragment {
 
-    private ProfileViewModel profileViewModel;
-    private ProfileViewAdapter profileViewAdapter;
-    private RecyclerView recyclerView;
-    private FragmentProfileBinding profileFragmentBinding;
-    private User mUser;
+    private static final String ARGUMENT_USER_ID = "ARGUMENT_USER_ID";
 
-    private String uid;
+    private FragmentProfileBinding mProfileFragmentBinding;
+    private ProfileViewAdapter mProfileViewAdapter;
+    private ProfileViewModel mProfileViewModel;
+    private RecyclerView mRecyclerView;
+    private String mUserId;
+    private DetachViewListener mListener;
+    public static final String PROFILE_FRAGMENT_TAG = "ProfileFragmentTag";
 
-    public void setUid(String uid) {
-        this.uid = uid;
+    public static ProfileFragment newInstance(String userId,@Nullable DetachViewListener listener) {
+        ProfileFragment profileFragment = new ProfileFragment();
+        if (listener != null) profileFragment.mListener = listener;
+        Bundle args = null;
+        if (userId != null) {
+            args = new Bundle();
+            args.putString(ARGUMENT_USER_ID, userId);
+        }
+        profileFragment.setArguments(args);
+        return profileFragment;
     }
 
     public ProfileFragment() {}
@@ -45,45 +52,61 @@ public class ProfileFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        profileViewModel = ViewModelProviders.of(this).get(ProfileViewModel.class);
-        profileViewModel.setFragmentManager(getFragmentManager());
-        profileFragmentBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_profile, container, false);
-        profileViewModel.getAllUsers().observe(this, users -> {
+        Bundle bundle = this.getArguments();
+        if (bundle != null) {
+            mUserId = bundle.getString(ARGUMENT_USER_ID);
+        }
+        mProfileViewModel = ViewModelProviders.of(this).get(ProfileViewModel.class);
+
+        mProfileViewModel.setFragmentManager(getFragmentManager());
+        mProfileFragmentBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_profile, container, false);
+        mProfileViewModel.getAllUsers().observe(this, users -> {
             if (users != null) {
                 for (User user : users) {
-                    if (user.getUserId().equals(uid)) {
-                        profileFragmentBinding.setUser(user);
+                    if (user.getUserId().equals(mUserId)) {
+                        mProfileFragmentBinding.setUser(user);
                     } //else getFragmentManager().popBackStack();
                 }
-            } else profileViewModel.usersNull();
+            } else mProfileViewModel.usersNull();
         });
-        profileFragmentBinding.setViewModel(profileViewModel);
-        View view = profileFragmentBinding.getRoot();
-        recyclerView = view.findViewById(R.id.profile_recycler_view);
-        profileViewModel.getAllBeats().observe(this, beats -> {
+        mProfileFragmentBinding.setViewModel(mProfileViewModel);
+        View view = mProfileFragmentBinding.getRoot();
+        mRecyclerView = view.findViewById(R.id.profile_recycler_view);
+        mProfileViewModel.getAllBeats().observe(this, beats -> {
             List<Beat> ProfileUsersBeats = new ArrayList<>();
             if (beats != null) {
                 for (Beat beat : beats) {
-                    if (beat.getOwner().equals(uid)) ProfileUsersBeats.add(beat);
+                    if (beat.getOwner().equals(mUserId)) ProfileUsersBeats.add(beat);
                 }
-                boolean profileIsUsers = profileViewModel.getCurrentUser().getValue().getUid().equals(uid);
-                profileViewAdapter = new ProfileViewAdapter(ProfileUsersBeats, profileViewModel, profileIsUsers);
-                recyclerView.setAdapter(profileViewAdapter);
-                recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-            } else profileViewModel.beatsNull();
+                boolean profileIsUsers = mProfileViewModel.getCurrentUser().getValue().getUid().equals(mUserId);
+                mProfileViewModel.setIsCurrentUser(profileIsUsers);
+                mProfileViewAdapter = new ProfileViewAdapter(ProfileUsersBeats, mProfileViewModel, profileIsUsers);
+                mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+                mRecyclerView.setAdapter(mProfileViewAdapter);
+            } else mProfileViewModel.beatsNull();
         });
         return view;
     }
 
     @Override
     public void onDetach() {
+        if (mListener != null) mListener.onFragmentBacked();
         try {
-            profileViewModel.mPlayer.stop();
-            profileViewModel.mPlayer.release();
+            mProfileViewModel.mPlayer.stop();
+            mProfileViewModel.mPlayer.release();
         } catch (NullPointerException e) {
             e.printStackTrace();
         }
+        Activity main = getActivity();
+        if (main != null) {
+            main.invalidateOptionsMenu();
+        }
+        getActivity().getSupportFragmentManager().beginTransaction().remove(this).commitAllowingStateLoss();
         super.onDetach();
+    }
+
+    public interface DetachViewListener{
+        void onFragmentBacked();
     }
 }
 

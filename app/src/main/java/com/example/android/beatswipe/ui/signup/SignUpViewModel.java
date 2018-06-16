@@ -125,14 +125,6 @@ public class SignUpViewModel extends AndroidViewModel implements Observable{
         getSignUpNavigator().LogInClicked();
     }
 
-    public void loadAllBeats() {
-        mRepository.loadAllBeats();
-    }
-
-    public void loadAllUsers() {
-        mRepository.loadAllUsers();
-    }
-
     @Override
     public void addOnPropertyChangedCallback(OnPropertyChangedCallback callback) {
         registry.add(callback);

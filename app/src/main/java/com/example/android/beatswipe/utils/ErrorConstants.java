@@ -8,6 +8,8 @@ public class ErrorConstants {
 
     public static final String LOGIN_HANDLER = "LoginHandler";
     public static final String SIGNUP_HANDLER = "SignUpHandler";
+    public static final String UPLOAD_HANDLER = "UploadHandler";
+
 
 
 

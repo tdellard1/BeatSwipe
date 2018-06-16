@@ -16,31 +16,34 @@ import com.google.firebase.auth.FirebaseUser;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.android.beatswipe.utils.ErrorConstants.LOGIN_ERROR;
 import static com.example.android.beatswipe.utils.ErrorConstants.LOGIN_HANDLER;
 import static com.example.android.beatswipe.utils.ErrorConstants.SIGNUP_HANDLER;
+import static com.example.android.beatswipe.utils.ErrorConstants.UPLOAD_HANDLER;
+import static com.example.android.beatswipe.utils.Utils.testRef;
 
-public class BeatRepository implements FirebaseListener{
+public class BeatRepository implements FirebaseService.FirebaseListener {
 
     private BeatDao mBeatDao;
     private UserDao mUserDao;
-    private FirebaseService firebaseService;
+    private FirebaseService mFirebaseService;
 
     /** LiveData/Observable Fields */
-    private LiveData<Double> progress;
+    private LiveData<Double> mProgress;
     private LiveData<List<Beat>> mAllBeats;
     private LiveData<List<User>> mAllUsers;
     private MutableLiveData<FirebaseUser> mCurrentUser = new MutableLiveData<>();
-    private MutableLiveData<String> loginErrorMessage = new MutableLiveData<>();
-    private MutableLiveData<String> signUpErrorMessage = new MutableLiveData<>();
+    private MutableLiveData<String> mLoginErrorMessage = new MutableLiveData<>();
+    private MutableLiveData<String> mSignUpErrorMessage = new MutableLiveData<>();
+    private MutableLiveData<String> mUploadErrorMessage = new MutableLiveData<>();
 
     /** Getters For LiveData/Observed Dispatched Fields */
-    public LiveData<Double> getProgress() { return progress; }
+    public LiveData<Double> getProgress() { return mProgress; }
     public LiveData<List<Beat>> getAllBeats() { return mAllBeats; }
     public LiveData<List<User>> getAllUsers() { return mAllUsers; }
     public LiveData<FirebaseUser> getCurrentUser() { return mCurrentUser; }
-    public LiveData<String> getLoginErrorMessage() { return loginErrorMessage; }
-    public LiveData<String> getSignUpErrorMessage() { return signUpErrorMessage; }
+    public LiveData<String> getLoginErrorMessage() { return mLoginErrorMessage; }
+    public LiveData<String> getSignUpErrorMessage() { return mSignUpErrorMessage; }
+    public LiveData<String> getUploadErrorMessage() { return mSignUpErrorMessage; }
 
     public BeatRepository(Application application) {
         BeatRoomDatabase db = BeatRoomDatabase.getDatabase(application);
@@ -48,17 +51,60 @@ public class BeatRepository implements FirebaseListener{
         mUserDao = db.userDao();
         mAllBeats = mBeatDao.getAllBeats();
         mAllUsers = mUserDao.getAllUsers();
-        firebaseService = new FirebaseService();
-        firebaseService.addFirebaseListener(this);
-        progress = firebaseService.getProgressLoaded();
-        mCurrentUser.setValue(firebaseService.getCurrentUser());
+        mFirebaseService = new FirebaseService();
+        mFirebaseService.addFirebaseListener(this);
+        mProgress = mFirebaseService.getProgressLoaded();
+        mCurrentUser.setValue(mFirebaseService.getCurrentUser());
     }
 
+    //region FIREBASE LISTENER
+    @Override
+    public void AddUserToRoomDatabase(User user) {
+        new AddOneUserAsync(mUserDao).execute(user);
+    }
+
+    @Override
+    public void AddOneBeatToRoomDatabase(Beat beat) {
+        new AddOneBeatAsyncTask(mBeatDao).execute(beat);
+    }
+
+    @Override
+    public void LogIn(FirebaseUser firebaseUser) {
+        loadAllUsers();
+        loadAllBeats();
+        mCurrentUser.setValue(firebaseUser);
+    }
+
+    @Override
+    public void RemoveBeatFromRoomDatabase(Beat beat) {
+        new DeleteOneBeatAsync(mBeatDao).execute(beat);
+    }
+
+    @Override
+    public void UpdateBeat(Beat beat) {
+        new UpdateBeatAsync(mBeatDao).execute(beat);
+    }
+
+    @Override
+    public void ErrorMessage(String message, String handler) {
+        switch (handler) {
+            case LOGIN_HANDLER:
+                mLoginErrorMessage.setValue(message);
+                break;
+            case SIGNUP_HANDLER:
+                mSignUpErrorMessage.setValue(message);
+                break;
+            case UPLOAD_HANDLER:
+                mUploadErrorMessage.setValue(message);
+                break;
+        }
+    }
+    //endregion
 
     //region USER FUNCTIONS
 
     public void LogInUser(String email, String password) {
-        firebaseService.logInUser(email, password);
+        mFirebaseService.logInUser(email, password);
     }
 
     public void signOutUser() {
@@ -67,53 +113,54 @@ public class BeatRepository implements FirebaseListener{
          * Deletes all loaded beats and users
          * TODO: Think about if I want to remove and load full Room Database for every change of User State.
          */
-        mCurrentUser.setValue(firebaseService.signOutUser());
-        deleteBeats();
-        deleteUsers();
+        mCurrentUser.setValue(mFirebaseService.signOutUser());
+        deleteAllBeats();
+        deleteAllUsers();
     }
 
     public void createAccount(Map UserMap) {
-        firebaseService.createUser(UserMap);
+        mFirebaseService.createUser(UserMap);
     }
 
 //endregion
 
     //region BEAT FUNCTIONS
 
-    public void deleteBeats() { firebaseService.syncAllBeats(); }
+    private void deleteAllBeats() { new DeleteAllBeatsAsync(mBeatDao).execute(); }
 
-    public void deleteUsers() { new DeleteUsersAsync(mUserDao).execute(); }
+    private void deleteAllUsers() { new DeleteAllUsersAsync(mUserDao).execute(); }
 
     public void uploadFile(Map FileMap) {
-        firebaseService.addBeatToStorageAndDatabase(FileMap);
+        mFirebaseService.addAudioToStorage(FileMap);
     }
 
     public void loadAllBeats() {
-        firebaseService.syncAllBeats();
+        mFirebaseService.syncAllBeats();
     }
 
-    public void loadAllUsers() { firebaseService.syncAllProducers(); }
+    public void loadAllUsers() { mFirebaseService.syncAllProducers(); }
 
     /**
      * TEST THIS WHEN STORAGE STARTS TO WORK.
      * @param beatName
      */
-    public void deleteUserBeat(String beatName) {
-        firebaseService.deleteBeat(beatName);
+    public void deleteUserBeatFromRemoteDatabase(String beatName) {
+        mFirebaseService.deleteBeat(beatName);
     }
 
-    public void updateBeat(Beat originalBeat) {
-        firebaseService.updateBeat(originalBeat);
+    public void updateBeat(Beat oldBeat, Map<String, String> newBeat) {
+        testRef.push().setValue("BeatRepository: updateBeat Called");
+        mFirebaseService.updateBeat(oldBeat, newBeat);
     }
 
     //endregion
 
     //region ASYNC TASKS
-    private static class DeleteUsersAsync extends AsyncTask<Void, Void, Void> {
+    private static class DeleteAllUsersAsync extends AsyncTask<Void, Void, Void> {
 
         private UserDao userDao;
 
-        DeleteUsersAsync(UserDao userDao) {
+        DeleteAllUsersAsync(UserDao userDao) {
             this.userDao = userDao;
         }
 
@@ -124,11 +171,11 @@ public class BeatRepository implements FirebaseListener{
         }
     }
 
-    private static class AddUserAsync extends AsyncTask<User, Void, Void> {
+    private static class AddOneUserAsync extends AsyncTask<User, Void, Void> {
 
         private UserDao userDao;
 
-        AddUserAsync(UserDao userDao) {
+        AddOneUserAsync(UserDao userDao) {
             this.userDao = userDao;
         }
 
@@ -139,11 +186,11 @@ public class BeatRepository implements FirebaseListener{
         }
     }
 
-    private static class DeleteBeatsAsync extends AsyncTask<Void, Void, Void> {
+    private static class DeleteAllBeatsAsync extends AsyncTask<Void, Void, Void> {
 
         private BeatDao beatDao;
 
-        DeleteBeatsAsync(BeatDao beatDao) {
+        DeleteAllBeatsAsync(BeatDao beatDao) {
             this.beatDao = beatDao;
         }
 
@@ -154,11 +201,11 @@ public class BeatRepository implements FirebaseListener{
         }
     }
 
-    private static class DeleteBeatAsync extends AsyncTask<Beat, Void, Void> {
+    private static class DeleteOneBeatAsync extends AsyncTask<Beat, Void, Void> {
 
         private BeatDao beatDao;
 
-        DeleteBeatAsync(BeatDao beatDao) {
+        DeleteOneBeatAsync(BeatDao beatDao) {
             this.beatDao = beatDao;
         }
 
@@ -184,11 +231,11 @@ public class BeatRepository implements FirebaseListener{
         }
     }
 
-    private static class insertOneBeatAsyncTask extends AsyncTask<Beat, Void, Void> {
+    private static class AddOneBeatAsyncTask extends AsyncTask<Beat, Void, Void> {
 
         private BeatDao mAsyncTaskDao;
 
-        insertOneBeatAsyncTask(BeatDao dao) {
+        AddOneBeatAsyncTask(BeatDao dao) {
             mAsyncTaskDao = dao;
         }
 
@@ -200,45 +247,7 @@ public class BeatRepository implements FirebaseListener{
     }
     //endregion
 
-    //region FIREBASE LISTENER
-    @Override
-    public void AddUserToRoomDatabase(User user) {
-        new AddUserAsync(mUserDao).execute(user);
-    }
 
-    @Override
-    public void AddOneBeatToRoomDatabase(Beat beat) {
-        new insertOneBeatAsyncTask(mBeatDao).execute(beat);
-    }
-
-    @Override
-    public void LogIn(FirebaseUser firebaseUser) {
-        mCurrentUser.setValue(firebaseUser);
-    }
-
-    @Override
-    public void RemoveBeatFromRoomDatabase(Beat beat) {
-        new DeleteBeatAsync(mBeatDao).execute(beat);
-    }
-
-    @Override
-    public void UpdateBeat(Beat beat) {
-        new UpdateBeatAsync(mBeatDao).execute(beat);
-    }
-
-    @Override
-    public void ErrorMessage(String message, String handler) {
-        switch (handler) {
-            case LOGIN_HANDLER:
-                loginErrorMessage.setValue(message);
-                break;
-            case SIGNUP_HANDLER:
-                signUpErrorMessage.setValue(message);
-                break;
-
-        }
-    }
-    //endregion
 
 
 

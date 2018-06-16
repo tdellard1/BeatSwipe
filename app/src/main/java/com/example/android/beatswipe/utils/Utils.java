@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.OpenableColumns;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.example.android.beatswipe.data.local.Beat;
@@ -32,7 +33,6 @@ public class Utils {
                 } else {
                     size = "Unknown";
                 }
-                Log.i(TAG, "Size: " + size);
             }
         } finally {
             cursor.close();
@@ -40,11 +40,11 @@ public class Utils {
         return displayName;
     }
 
-    public static Beat createBeat(String name, String url, String genre) {
-        Beat beat = new Beat();
-        beat.setName(name);
-        beat.setUrl(url);
-        beat.setGenre(genre);
-        return beat;
+    public static String toString(@NonNull String stringToConvert) {
+        return stringToConvert.replaceAll("\\.", "")
+                .replaceAll("\\$", "")
+                .replaceAll("[#]", "")
+                .replaceAll("\\[","")
+                .replaceAll("\\]", "");
     }
 }

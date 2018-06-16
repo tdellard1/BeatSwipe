@@ -1,88 +1,107 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout
-    xmlns:tools="http://schemas.android.com/tools"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <variable
             name="swipeViewModel"
             type="com.example.android.beatswipe.ui.swipe.SwipeViewModel"/>
+        <import type="android.view.View"/>
     </data>
 
     <android.support.constraint.ConstraintLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/constraint_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.example.android.beatswipe.ui.swipe.SwipeActivity">
+        android:background="#191919">
 
         <ImageButton
-            android:id="@+id/imageButton"
+            android:id="@+id/image_Button_Beat"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:layout_marginStart="16dp"
+            android:background="@drawable/swipe_activity_button"
+            android:clickable="false"
             android:onClick="@{() -> swipeViewModel.play()}"
-            android:src="@{swipeViewModel.isPlaying ? @android:drawable/ic_media_pause : @android:drawable/ic_media_play}"
+            android:src="@drawable/play_button_default"
+            android:visibility="@{swipeViewModel.isPlaying ? View.INVISIBLE : View.VISIBLE}"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/linearLayout4"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintHorizontal_chainStyle="spread_inside"
             app:layout_constraintStart_toStartOf="parent" />
 
         <ImageButton
-            android:id="@+id/imageButton3"
+            android:id="@+id/image_Button_Link"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:layout_marginEnd="16dp"
-            android:onClick="@{() -> swipeViewModel.playNext()}"
+            android:background="@drawable/swipe_activity_button"
+            android:onClick="@{() -> swipeViewModel.purchaseBeat()}"
+            android:src="@drawable/dollar_sign"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:srcCompat="@android:drawable/ic_media_next" />
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/linearLayout4" />
 
-        <TextView
-            android:id="@+id/tv_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@={swipeViewModel.beat_name}"
-            android:textSize="25sp"
-            app:layout_constraintBottom_toTopOf="@+id/tv_genre"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.502"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/imageButton3" />
-
-        <TextView
-            android:id="@+id/tv_genre"
+        <LinearLayout
+            android:id="@+id/linearLayout4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:text="@={swipeViewModel.beat_genre}"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:orientation="vertical"
+            android:gravity="center"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintEnd_toStartOf="@+id/image_Button_Link"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/image_Button_Beat">
 
+
+            <TextView
+                android:id="@+id/tv_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@={swipeViewModel.beat_name}"
+                android:textSize="25sp"
+                android:textColor="#999"
+                android:gravity="center_horizontal"
+                app:layout_constraintBottom_toTopOf="@+id/tv_genre"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.502"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/image_Button_Link" />
+
+            <TextView
+                android:id="@+id/tv_genre"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:textColor="#999"
+                android:gravity="center_vertical"
+                android:text="@={swipeViewModel.beat_genre}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+        </LinearLayout>
 
 
         <Button
-            android:id="@+id/textView2"
-            android:layout_width="wrap_content"
+            android:id="@+id/button_Producer"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:onClick="@{() -> swipeViewModel.Profile()}"
             android:text="@={swipeViewModel.beat_owner}"
+            android:textColor="#999"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
-
-        <!--<android.support.v7.widget.CardView
-            android:id="@+id/card_view"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginBottom="8dp"
-            android:elevation="4dp"
-            app:layout_constraintBottom_toTopOf="@+id/tv_name"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView2" />-->
 
     </android.support.constraint.ConstraintLayout>
 </layout>

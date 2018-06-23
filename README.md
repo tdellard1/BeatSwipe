@@ -1,10 +1,10 @@
 # BeatSwipe
 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/25181025/41803321-23f387e0-764d-11e8-80b5-59b53e38481c.jpg" width="200"/>
-  <img src="https://user-images.githubusercontent.com/25181025/41805973-f867cbdc-7678-11e8-91c8-dc4327805cec.jpg" width="200"/>
-  <img src="https://user-images.githubusercontent.com/25181025/41805981-2d55bb10-7679-11e8-9d1a-9a60f067bece.jpg" width="200"/>
-  <img src="https://user-images.githubusercontent.com/25181025/41806025-641a4cd2-767a-11e8-9180-375fbe033b35.jpg" width="200"/>
+  <img src="https://user-images.githubusercontent.com/25181025/41806025-641a4cd2-767a-11e8-9180-375fbe033b35.jpg" width="214"/>
+  <img src="https://user-images.githubusercontent.com/25181025/41805981-2d55bb10-7679-11e8-9d1a-9a60f067bece.jpg" width="214"/>
+  <img src="https://user-images.githubusercontent.com/25181025/41803321-23f387e0-764d-11e8-80b5-59b53e38481c.jpg" width="214"/>
+  <img src="https://user-images.githubusercontent.com/25181025/41805973-f867cbdc-7678-11e8-91c8-dc4327805cec.jpg" width="214"/>  
 </p>
 A tinder-styled app where one can contribute to a collection of musical instrumentals, or they can query through a collection of musical instrumentals and proceed to where they can purchase that instrumental. The user selects the genre they want to search for then get a stacked view of images to match instrumentals to listen to. Then can click the '$' button to go to where the instumental can be purchased.  
 

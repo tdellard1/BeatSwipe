@@ -7,7 +7,9 @@
   <img src="https://user-images.githubusercontent.com/25181025/41805973-f867cbdc-7678-11e8-91c8-dc4327805cec.jpg" width="214"/>  
 </p>
 <br/>
-A tinder-styled app where one can contribute to a collection of musical instrumentals, or they can query through a collection of musical instrumentals and proceed to where they can purchase that instrumental. The user selects the genre they want to search for then get a stacked view of images to match instrumentals to listen to. Then can click the '$' button to go to where the instumental can be purchased.  
+
+#### The functionality of this app is:
+...A tinder-styled app where one can contribute to a collection of musical instrumentals, or they can query through a collection of musical instrumentals and proceed to where they can purchase that instrumental. The user selects the genre they want to search for then get a stacked view of images to match instrumentals to listen to. Then can click the '$' button to go to where the instumental can be purchased.  
 
 ## Highlights of the application features
 

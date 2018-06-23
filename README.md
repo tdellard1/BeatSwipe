@@ -13,7 +13,7 @@
   A tinder-styled app where one can contribute to a collection of musical instrumentals, or they can query through a collection of musical instrumentals and proceed to where they can purchase that instrumental. The user selects the genre they want to search for then get a stacked view of images to match instrumentals to listen to. Then can click the '$' button to go to where the instumental can be purchased.
 
 ## Highlights of the application features
-
+<a href="https://developer.android.com/topic/libraries/architecture/room">Room Database</a>
 * __Room Database__ - https://developer.android.com/topic/libraries/architecture/room
 * __LiveData__ - https://developer.android.com/topic/libraries/architecture/livedata
 * __ViewModel__ - https://developer.android.com/topic/libraries/architecture/viewmodel

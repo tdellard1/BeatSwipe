@@ -9,6 +9,8 @@
 <br/>
 
 #### The functionality of this app is:
+⋅⋅⋅To have a line break without a paragraph, you will need to use two trailing spaces.⋅⋅
+
 ...A tinder-styled app where one can contribute to a collection of musical instrumentals, or they can query through a collection of musical instrumentals and proceed to where they can purchase that instrumental. The user selects the genre they want to search for then get a stacked view of images to match instrumentals to listen to. Then can click the '$' button to go to where the instumental can be purchased.  
 
 ## Highlights of the application features

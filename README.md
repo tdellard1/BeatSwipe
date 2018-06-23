@@ -1,24 +1,33 @@
 # BeatSwipe
 
-# Project Title
+A tinder-styled app where one can contribute to a collection of musical instrumentals, or they can query through a collection of musical instrumentals and proceed to where they can purchase that instrumental. The user selects the genre they want to search for then get a stacked view of images to match instrumentals to listen to. Then can click the '$' button to go to where the instumental can be purchased.  
 
-One Paragraph of project description goes here
+<p align="center">
+![swipe view](https://user-images.githubusercontent.com/25181025/41803321-23f387e0-764d-11e8-80b5-59b53e38481c.jpg)
+![profileview](https://user-images.githubusercontent.com/25181025/41803325-31d2cd44-764d-11e8-898a-eb745d47b176.jpg)
+</p>
 
-## Getting Started
+
+
+## Photos Of The App
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
-### Prerequisites
+### External References 
+or 
+### Highlights of the application features
 
-What things you need to install the software and how to install them
+Android Architecture Components - 
+
+What Tech Did I Use For The App
 
 ```
 Give examples
 ```
 
-### Installing
+### Access To PlayStore App
 
-A step by step series of examples that tell you how to get a development env running
+*Figure out how to get playstore image to appear
 
 Say what the step will be
 

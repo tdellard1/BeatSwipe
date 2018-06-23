@@ -6,20 +6,20 @@
   <img src="https://user-images.githubusercontent.com/25181025/41803321-23f387e0-764d-11e8-80b5-59b53e38481c.jpg" width="214"/>
   <img src="https://user-images.githubusercontent.com/25181025/41805973-f867cbdc-7678-11e8-91c8-dc4327805cec.jpg" width="214"/>  
 </p>
----
+<br/>
 A tinder-styled app where one can contribute to a collection of musical instrumentals, or they can query through a collection of musical instrumentals and proceed to where they can purchase that instrumental. The user selects the genre they want to search for then get a stacked view of images to match instrumentals to listen to. Then can click the '$' button to go to where the instumental can be purchased.  
 
+## Highlights of the application features
 
+* __Room Database__ - https://developer.android.com/topic/libraries/architecture/room
+* __LiveData__ - https://developer.android.com/topic/libraries/architecture/livedata
+* __ViewModel__ - https://developer.android.com/topic/libraries/architecture/viewmodel
+* __Firebase Auth__ - https://firebase.google.com/docs/auth/
+* __Firebase Storage__ - https://firebase.google.com/docs/storage/
+* __Firebase Database__ - https://firebase.google.com/docs/database/
+* __Picasso__ - http://square.github.io/picasso/
+* __Image Cropper__ - https://github.com/ArthurHub/Android-Image-Cropper
 
-## Photos Of The App
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
-
-### External References 
-or 
-### Highlights of the application features
-
-Android Architecture Components - 
 
 What Tech Did I Use For The App
 
